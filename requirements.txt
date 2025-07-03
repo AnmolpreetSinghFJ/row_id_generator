@@ -1,0 +1,14 @@
+# Production dependencies for row-id-generator
+# Based on research for compatibility and stability
+
+# Core data processing
+pandas>=2.2.0,<4.0.0
+
+# Snowflake database connectivity  
+snowflake-connector-python>=3.0.0,<4.0.0
+
+# Performance monitoring and system metrics
+psutil>=5.8.0
+
+# User experience - progress bars
+tqdm>=4.65.0 

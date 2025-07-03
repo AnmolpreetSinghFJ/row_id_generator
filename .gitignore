@@ -1,0 +1,126 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv/
+.ENV/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# UV package manager
+uv.lock
+
+# Testing
+.tox/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+# Test artifacts and temporary directories
+test_installation/
+test_results/
+coverage_reports/
+coverage_report/
+htmlcov/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Documentation
+docs/_build/
+docs/.doctrees/
+.sphinx/
+
+# Logs and monitoring data
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dev-debug.log
+# Specific log files
+hashing_operations.log
+error_log.json
+*.log.json
+
+# Performance and cache files
+*.pkl
+*.pickle
+.performance_baselines.pkl
+*.cache
+*.prof
+
+# Dependency directories
+node_modules/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Editor directories and files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Project specific
+.taskmaster/
+*.tmp
+*.temp
+# Development and documentation files
+test_task*.py
+TASK*_*.md
+*_IMPLEMENTATION_SUMMARY.md
+*_SUMMARY.md
+PRD.txt
+# Temporary data files
+*.backup
+*.bak
+debug_*
+temp_*

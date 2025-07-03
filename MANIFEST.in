@@ -1,0 +1,89 @@
+# MANIFEST.in - Package Distribution File Inclusion
+# Comprehensive file inclusion for row-id-generator package
+
+# Core package files
+include README.md
+include LICENSE
+include CHANGELOG.md
+include CONTRIBUTING.md
+
+# Configuration and requirements
+include pyproject.toml
+include setup.py
+include requirements.txt
+include requirements-dev.txt
+include .gitignore
+include .python-version
+
+# Type checking support
+include row_id_generator/py.typed
+
+# Documentation files (comprehensive)
+recursive-include docs *.md *.rst *.txt *.py *.yaml *.yml
+recursive-include docs *.html *.css *.js *.json
+
+# Examples and tutorials
+recursive-include examples *.py *.md *.txt *.json *.yaml *.yml
+recursive-include examples *.ipynb *.csv
+
+# Configuration templates and schemas
+recursive-include row_id_generator/templates *.yaml *.yml *.json *.txt
+recursive-include row_id_generator/schemas *.json *.yaml *.yml
+
+# Scripts and utilities (if any)
+recursive-include scripts *.py *.sh *.bat
+
+# Include build configuration
+include Makefile
+include .pre-commit-config.yaml
+
+# GitHub configuration
+recursive-include .github *.yml *.yaml *.md
+
+# Taskmaster documentation (project-specific)
+recursive-include .taskmaster *.md *.txt *.json
+
+# Explicitly exclude development and build artifacts
+exclude .coverage
+exclude *.log
+exclude *.pkl
+exclude tox.ini
+exclude .coveragerc
+
+# Exclude test results and reports
+recursive-exclude test_results *
+recursive-exclude coverage_reports *
+recursive-exclude coverage_report *
+recursive-exclude htmlcov *
+
+# Exclude development files
+recursive-exclude tests *
+recursive-exclude .git *
+recursive-exclude .pytest_cache *
+recursive-exclude __pycache__ *
+recursive-exclude *.egg-info *
+recursive-exclude build *
+recursive-exclude dist *
+
+# Exclude temporary and cache files
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *.pyd
+global-exclude .DS_Store
+global-exclude *.so
+global-exclude .coverage
+global-exclude .tox
+global-exclude .cache
+
+# Exclude editor and IDE files
+global-exclude .vscode
+global-exclude .idea
+global-exclude *.swp
+global-exclude *.swo
+global-exclude *~
+
+# Exclude environment files
+exclude .env
+exclude .env.*
+recursive-exclude .venv *
+recursive-exclude venv * 

@@ -1,0 +1,79 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: debug-statements
+      - id: check-json
+      - id: pretty-format-json
+        args: ['--autofix']
+
+  - repo: https://github.com/psf/black
+    rev: 23.7.0
+    hooks:
+      - id: black
+        language_version: python3
+        args: [--line-length=88]
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        args: ["--profile", "black"]
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        args: [--max-line-length=88, --extend-ignore=E203,W503]
+
+  - repo: local
+    hooks:
+      - id: unit-tests
+        name: Run Unit Tests
+        entry: python -m pytest tests/test_core.py tests/test_utils.py tests/test_observable.py tests/test_benchmarks.py -x --tb=short
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: integration-tests-quick
+        name: Run Quick Integration Tests
+        entry: python -m pytest tests/test_integration_simple.py -x --tb=short
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: edge-case-tests-critical
+        name: Run Critical Edge Case Tests
+        entry: python -m pytest tests/test_edge_cases.py::TestEmptyAndNullData -x --tb=short
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: snowflake-integration-basic
+        name: Run Basic Snowflake Integration Tests
+        entry: python -m pytest tests/test_snowflake_integration.py::TestSnowflakeConnectionManager -x --tb=short
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: test-runner-sanity
+        name: Run Test Runner Sanity Check
+        entry: python tests/test_runner.py --quick
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: coverage-check
+        name: Check Code Coverage
+        entry: bash -c 'python -m pytest tests/test_core.py --cov=row_id_generator --cov-report=term-missing --cov-fail-under=30'
+        language: system
+        pass_filenames: false
+        always_run: true
+
+default_stages: [commit]
+fail_fast: false 
