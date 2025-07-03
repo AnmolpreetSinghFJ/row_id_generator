@@ -40,7 +40,7 @@ def production_monitoring_example():
     print("=" * 50)
     
     # Create comprehensive observable engine
-    engine = create_full_observable_engine()
+    engine = create_observable_engine()
     
     # Sample production data
     df = pd.DataFrame({
@@ -334,14 +334,14 @@ def data_quality_analysis_example():
     
     # Comprehensive quality analysis
     try:
-        quality_metrics = analyze_dataframe_quality(quality_test_df, include_recommendations=True)
+        quality_metrics = analyze_dataframe_quality(quality_test_df, "Quality test dataset")
         summary = quality_metrics.get_summary_report()
         
         print(f"\n📊 OVERALL QUALITY:")
         print(f"   Score: {summary.get('overall_score', 'N/A')}")
         print(f"   Grade: {summary.get('grade', 'N/A')}")
         
-        recommendations = quality_metrics.get_recommendations()
+        recommendations = quality_metrics.metrics.get('recommendations', [])
         if recommendations:
             print(f"\n💡 RECOMMENDATIONS:")
             for i, rec in enumerate(recommendations[:5], 1):  # Show top 5
@@ -366,8 +366,7 @@ def data_quality_analysis_example():
     try:
         selected_columns = select_columns_for_hashing(
             quality_test_df,
-            uniqueness_threshold=0.5,  # Lower threshold for this example
-            max_columns=3
+            uniqueness_threshold=0.5  # Lower threshold for this example
         )
         print(f"   Selected: {selected_columns}")
         
@@ -463,7 +462,6 @@ def integration_patterns_example():
     etl_config = {
         'use_observable': True,
         'row_id_params': {
-            'enable_monitoring': True,
             'uniqueness_threshold': 0.9,
             'show_progress': False
         }

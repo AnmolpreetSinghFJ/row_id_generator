@@ -17,7 +17,13 @@ from .core import (
     generate_unique_row_ids, 
     generate_row_ids_simple, 
     generate_row_ids_fast,
-    create_optimized_row_id_function
+    create_optimized_row_id_function,
+    validate_dataframe_input,
+    DataValidationError,
+    HashGenerationError,
+    RowIDGenerationError,
+    ColumnSelectionError,
+    PreprocessingError
 )
 from .utils import (
     select_columns_for_hashing, 
@@ -25,7 +31,10 @@ from .utils import (
     normalize_string_data,
     handle_null_values,
     standardize_datetime,
-    normalize_numeric_data
+    normalize_numeric_data,
+    get_column_quality_score,
+    analyze_dataframe_quality,
+    DataQualityMetrics
 )
 
 # Import observability-integrated functionality
@@ -47,12 +56,23 @@ __all__ = [
     'generate_row_ids_simple',
     'generate_row_ids_fast',
     'create_optimized_row_id_function',
+    'validate_dataframe_input',
     'select_columns_for_hashing', 
     'prepare_data_for_hashing',
     'normalize_string_data',
     'handle_null_values',
     'standardize_datetime',
     'normalize_numeric_data',
+    'get_column_quality_score',
+    'analyze_dataframe_quality',
+    'DataQualityMetrics',
+    
+    # Error classes
+    'DataValidationError',
+    'HashGenerationError',
+    'RowIDGenerationError',
+    'ColumnSelectionError',
+    'PreprocessingError',
     
     # Observable functionality
     'ObservableHashingEngine',
