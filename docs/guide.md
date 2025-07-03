@@ -34,7 +34,7 @@ pip install row-id-generator
 
 ```bash
 # Latest development version
-uv add git+https://github.com/alakob/row_id_generator.git
+uv pip install git+https://github.com/alakob/row_id_generator.git
 
 # Using pip
 pip install git+https://github.com/alakob/row_id_generator.git
@@ -44,10 +44,10 @@ pip install git+https://github.com/alakob/row_id_generator.git
 
 ```bash
 # Specific branch
-uv add git+https://github.com/alakob/row_id_generator.git@main
+uv pip install git+https://github.com/alakob/row_id_generator.git@main
 
 # Specific tag/version
-uv add git+https://github.com/alakob/row_id_generator.git@v1.0.0
+uv pip install git+https://github.com/alakob/row_id_generator.git@v1.0.0
 
 # With pip
 pip install git+https://github.com/alakob/row_id_generator.git@main
@@ -78,7 +78,7 @@ uv add "row-id-generator[observability]"
 uv add "row-id-generator[all]"
 
 # From GitHub with extras
-uv add "git+https://github.com/alakob/row_id_generator.git[all]"
+uv pip install "git+https://github.com/alakob/row_id_generator.git[all]"
 ```
 
 ### Your First Row ID Generation

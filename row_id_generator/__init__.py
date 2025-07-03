@@ -13,8 +13,20 @@ __author__ = "Row ID Generator Team"
 __email__ = "support@example.com"
 
 # Import main functionality for easy access
-from .core import generate_unique_row_ids
-from .utils import select_columns_for_hashing, prepare_data_for_hashing
+from .core import (
+    generate_unique_row_ids, 
+    generate_row_ids_simple, 
+    generate_row_ids_fast,
+    create_optimized_row_id_function
+)
+from .utils import (
+    select_columns_for_hashing, 
+    prepare_data_for_hashing,
+    normalize_string_data,
+    handle_null_values,
+    standardize_datetime,
+    normalize_numeric_data
+)
 
 # Import observability-integrated functionality
 from .observable import (
@@ -32,8 +44,15 @@ from . import cli
 __all__ = [
     # Core functionality
     'generate_unique_row_ids',
+    'generate_row_ids_simple',
+    'generate_row_ids_fast',
+    'create_optimized_row_id_function',
     'select_columns_for_hashing', 
     'prepare_data_for_hashing',
+    'normalize_string_data',
+    'handle_null_values',
+    'standardize_datetime',
+    'normalize_numeric_data',
     
     # Observable functionality
     'ObservableHashingEngine',

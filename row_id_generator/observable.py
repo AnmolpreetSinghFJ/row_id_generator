@@ -191,7 +191,7 @@ class ObservableHashingEngine:
                 self._update_session_metrics("columns_analyzed", len(df.columns))
                 
                 # Call core function
-                result_df, selected_columns, audit_trail = generate_unique_row_ids(
+                result = generate_unique_row_ids(
                     df=df,
                     columns=columns,
                     id_column_name=id_column_name,
@@ -199,8 +199,20 @@ class ObservableHashingEngine:
                     separator=separator,
                     show_progress=show_progress,
                     enable_monitoring=True,
+                    return_audit_trail=True,  # Ensure we get the full dictionary
                     **kwargs
                 )
+                
+                # Extract values from the returned dictionary
+                if isinstance(result, dict):
+                    result_df = result['result_dataframe']
+                    selected_columns = result['column_selection']['selected_columns']
+                    audit_trail = result['audit_trail']
+                else:
+                    # Fallback for unexpected return type
+                    result_df = result
+                    selected_columns = list(df.columns)
+                    audit_trail = {}
                 
                 # Analyze results and collect metrics
                 self._analyze_generation_results(result_df, selected_columns, audit_trail)

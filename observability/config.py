@@ -6,6 +6,7 @@ overrides, and default settings management for all observability components.
 """
 
 import logging
+import os
 import threading
 from pathlib import Path
 from typing import Dict, Any, Optional, List, Union, Callable

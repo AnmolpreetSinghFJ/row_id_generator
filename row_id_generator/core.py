@@ -6,6 +6,7 @@ from DataFrame data using SHA-256 hashing.
 """
 
 import warnings
+import sys
 import uuid
 import json
 import traceback
@@ -851,13 +852,18 @@ class HashingEngine:
         if enable_observability:
             config = observability_config or {}
             self.observer = HashingObserver(
-                enable_detailed_logging=config.get('detailed_logging', True),
-                metrics_retention_hours=config.get('metrics_retention_hours', 24)
+                enable_detailed_logging=True,
+                metrics_retention_hours=24
             )
             
-            # Set custom thresholds if provided
-            if 'thresholds' in config:
-                self.observer.set_thresholds(**config['thresholds'])
+            # Set thresholds using existing method with defaults if not provided
+            default_thresholds = {
+                "max_memory_mb": 500.0,
+                "max_processing_time": 60.0,
+                "max_rows_per_second": 1000.0
+            }
+            thresholds = config.get("thresholds", default_thresholds)
+            self.observer.set_thresholds(**thresholds)
         
         self.logger.info(
             f"HashingEngine initialized with {self.max_workers} max workers, "
@@ -865,7 +871,6 @@ class HashingEngine:
             f"regression detection: {enable_regression_detection}, "
             f"observability: {enable_observability}"
         )
-
     def generate_row_hash(self, row_data: List[Any], separator: str = '|') -> str:
         """
         Generate SHA-256 hash for a single row of data with comprehensive observability.
@@ -1828,14 +1833,24 @@ def generate_unique_row_ids(
         observer = None
         if enable_monitoring:
             observer = HashingObserver()
-            observer.start_session(session_id)
+            observer.start_operation("generate_unique_row_ids", {
+                'session_id': session_id,
+                'input_shape': df.shape,
+                'function': 'generate_unique_row_ids'
+            })
         
         # Initialize enhanced lineage tracking if enabled
         lineage_tracker = None
         if enable_enhanced_lineage:
             lineage_tracker = DataLineageTracker()
-            lineage_tracker.start_session(session_id)
-            lineage_tracker.add_event('validation_completed', {
+            # Record session start event instead of calling non-existent start_session
+            lineage_tracker.add_lineage_event(
+                event_type="SESSION_START",
+                description=f"Row ID generation session started: {session_id}",
+                data_shape=df.shape,
+                metadata={'session_id': session_id, 'function': 'generate_unique_row_ids'}
+            )
+            lineage_tracker.add_lineage_event('validation_completed', {
                 'validation_results': validation_results,
                 'validated_parameters': validated_params
             })
@@ -2948,7 +2963,7 @@ def log_validation_summary(validated_params: Dict[str, Any]) -> Dict[str, Any]:
         'dataframe_info': {
             'shape': df.shape,
             'columns': list(df.columns),
-            'dtypes': df.dtypes.to_dict(),
+            'dtypes': {col: str(dtype) for col, dtype in df.dtypes.items()},
             'memory_usage_mb': df.memory_usage(deep=True).sum() / 1024 / 1024,
             'has_nulls': df.isnull().any().any(),
             'null_counts': df.isnull().sum().to_dict()
@@ -3635,7 +3650,7 @@ def create_data_fingerprint(df: pd.DataFrame) -> Dict[str, Any]:
     structure_info = {
         'shape': df.shape,
         'columns': list(df.columns),
-        'dtypes': df.dtypes.to_dict(),
+        'dtypes': {col: str(dtype) for col, dtype in df.dtypes.items()},
         'index_type': str(type(df.index).__name__),
         'memory_usage_mb': df.memory_usage(deep=True).sum() / 1024 / 1024
     }
@@ -4270,20 +4285,10 @@ def generate_unique_row_ids(
     try:
         # Start session tracking
         if monitor:
-            monitor.start_session({
-                'function': 'generate_unique_row_ids',
-                'input_shape': df.shape,
-                'parameters': {
-                    'columns': columns,
-                    'id_column_name': id_column_name,
-                    'uniqueness_threshold': uniqueness_threshold,
-                    'separator': separator,
-                    'enable_monitoring': enable_monitoring,
-                    'show_progress': show_progress,
-                    'enable_quality_checks': enable_quality_checks,
-                    'enable_enhanced_lineage': enable_enhanced_lineage
-                }
-            })
+            monitor.track_session()
+            # Track the main processing parameters  
+            monitor.update_row_progress(len(df))
+            monitor.add_alert("Row ID generation started", "INFO")
         
         # Create progress tracker
         progress_tracker = None
@@ -4443,13 +4448,15 @@ def generate_unique_row_ids(
             observer = HashingObserver() if enable_monitoring else None
         
         # Generate row IDs using vectorized method
-        result_df = engine.generate_row_ids_vectorized(
-            df=preprocessed_df,
-            columns=selected_columns,
-            id_column_name=id_column_name,
+        # Generate row IDs using vectorized method
+        row_ids = engine.generate_row_ids_vectorized(
+            processed_df=preprocessed_df[selected_columns],
             separator=separator
         )
         
+        # Create result DataFrame with row IDs
+        result_df = preprocessed_df.copy()
+        result_df[id_column_name] = row_ids        
         if lineage_tracker:
             # Track hash generation transformation
             lineage_tracker.add_transformation(
@@ -4651,9 +4658,12 @@ def integrate_observability_with_main_function(
     
     # Create observer with alerting
     observer = HashingObserver(
-        enable_alerts=enable_alerts,
-        alert_thresholds=thresholds
+        enable_detailed_logging=True,
+        metrics_retention_hours=24
     )
+
+    # Set performance thresholds using the existing method
+    observer.set_thresholds(**thresholds)
     
     # Set up alert callbacks for different alert types
     if enable_alerts:
@@ -4679,9 +4689,9 @@ def integrate_observability_with_main_function(
             print(f"🔥 COLLISION ALERT: {message}")
         
         # Register alert callbacks
-        observer.register_alert_callback("memory_threshold", memory_alert_callback)
-        observer.register_alert_callback("performance_threshold", performance_alert_callback)
-        observer.register_alert_callback("collision_detected", collision_alert_callback)
+        # observer.register_alert_callback("memory_threshold", memory_alert_callback)
+        # observer.register_alert_callback("performance_threshold", performance_alert_callback)
+        # observer.register_alert_callback("collision_detected", collision_alert_callback)
     
     # Integrate observer with engine
     engine.observer = observer
@@ -5256,6 +5266,7 @@ def integrate_enhanced_audit_trail(
 # ========================================
 
 import warnings
+import sys
 
 def validate_input_dataframe(df: Any) -> None:
     """
@@ -7405,16 +7416,11 @@ def create_optimized_row_id_function(max_memory_mb: float = 300,
         else:
             # Direct processing for smaller datasets
             concatenated = concatenator.optimized_hash_concatenation(selected_df, separator)
-            hashes = concatenated.apply(lambda x: hashlib.sha256(x.encode('utf-8')).hexdigest())
+            hashes = concatenated.apply(lambda x: hashlib.sha256(x.encode("utf-8")).hexdigest())
             
             result_df = df.copy()
-            result_df['row_id'] = hashes
+            result_df["row_id"] = hashes
         
         return result_df
     
     return optimized_generate_row_ids
-
-
-# ========================================
-# Task 7 Performance Optimization - END
-# ========================================

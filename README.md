@@ -36,7 +36,7 @@ pip install row-id-generator
 
 ```bash
 # Using uv (recommended)
-uv add git+https://github.com/alakob/row_id_generator.git
+uv pip install git+https://github.com/alakob/row_id_generator.git
 
 # Using pip
 pip install git+https://github.com/alakob/row_id_generator.git
@@ -46,10 +46,10 @@ pip install git+https://github.com/alakob/row_id_generator.git
 
 ```bash
 # Install from specific branch
-uv add git+https://github.com/alakob/row_id_generator.git@main
+uv pip install git+https://github.com/alakob/row_id_generator.git@main
 
 # Install from specific tag
-uv add git+https://github.com/alakob/row_id_generator.git@v1.0.0
+uv pip install git+https://github.com/alakob/row_id_generator.git@v1.0.0
 
 # Using pip
 pip install git+https://github.com/alakob/row_id_generator.git@main
@@ -84,7 +84,7 @@ uv add "row-id-generator[observability]"
 uv add "row-id-generator[all]"
 
 # From GitHub with extras
-uv add "git+https://github.com/alakob/row_id_generator.git[all]"
+uv pip install "git+https://github.com/alakob/row_id_generator.git[all]"
 ```
 
 ## 🔥 Quick Start
@@ -133,13 +133,17 @@ result_df = generate_unique_row_ids(
 
 # Access comprehensive results
 if isinstance(result_df, dict):
-    df_with_ids = result_df['dataframe']
+    df_with_ids = result_df['result_dataframe']
     audit_trail = result_df['audit_trail']
-    selected_columns = result_df['selected_columns']
+    column_selection = result_df['column_selection']
     
-    print(f"Processing time: {audit_trail['processing_time']:.2f}s")
-    print(f"Selected columns: {selected_columns}")
-    print(f"Uniqueness ratio: {audit_trail['uniqueness_ratio']:.4f}")
+    print('\nDataFrame with IDs:')
+    print(df_with_ids)
+    
+    print(f'\nSelected columns: {column_selection["selected_columns"]}')
+    print(f'Column selection quality: {column_selection["overall_quality_score"]:.4f}')
+    print(f'Selection method: {column_selection["selection_method"]}')
+    print(f'Session ID: {result_df["session_id"]}')
 ```
 
 ## 🎯 API Reference
@@ -274,7 +278,7 @@ from row_id_generator.core import prepare_for_snowflake, load_to_snowflake
 df_with_ids = generate_unique_row_ids(df)
 
 # 2. Prepare for Snowflake (handle special characters, etc.)
-snowflake_ready_df = prepare_for_snowflake(df_with_ids)
+snowflake_ready_df = prepare_for_snowflake(df_with_ids, 'users_table')
 
 # 3. Load to Snowflake
 connection_params = {
@@ -287,11 +291,10 @@ connection_params = {
 }
 
 success, rows_loaded = load_to_snowflake(
-    df=snowflake_ready_df,
+    df_with_ids=snowflake_ready_df,
     connection_params=connection_params,
-    table_name='your_table',
-    if_exists='append',  # or 'replace', 'fail'
-    batch_size=10000
+    table_name='users_table',
+    if_exists='append'
 )
 
 print(f"Successfully loaded {rows_loaded} rows: {success}")
@@ -450,10 +453,9 @@ customer_df = pd.DataFrame({
     'signup_date': pd.to_datetime(['2024-01-15', '2024-01-16', '2024-01-17'])
 })
 
-# Generate stable customer IDs
+# Generate stable customer IDs (auto-selects email as primary identifier)
 customer_df_with_ids = generate_unique_row_ids(
     customer_df,
-    columns=['email'],  # Email is the primary identifier
     id_column_name='customer_id'
 )
 ```
@@ -537,9 +539,7 @@ result_df = optimized_generator(
 # For maximum speed:
 result_df = generate_row_ids_fast(
     df,
-    columns=['primary_key'],  # Use fewer, high-quality columns
-    enable_monitoring=False,  # Disable monitoring overhead
-    enable_quality_checks=False  # Skip quality checks
+    columns=['primary_key']  # Use fewer, high-quality columns
 )
 ```
 
@@ -635,7 +635,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **📧 Email**: support@example.com
 - **🐛 Bug Reports**: [GitHub Issues](https://github.com/alakob/row_id_generator/issues)
 - **💬 Questions**: [GitHub Discussions](https://github.com/alakob/row_id_generator/discussions)
-- **�� Documentation**: [GitHub Docs](https://github.com/alakob/row_id_generator/blob/main/docs/)
+- **📖 Documentation**: [GitHub Docs](https://github.com/alakob/row_id_generator/blob/main/docs/)
 
 ## 🙏 Acknowledgments
 

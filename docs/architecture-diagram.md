@@ -4,7 +4,7 @@ This document provides a comprehensive architectural overview of the Row ID Gene
 
 > **Repository**: [https://github.com/alakob/row_id_generator](https://github.com/alakob/row_id_generator)  
 > **Documentation**: [GitHub Docs](https://github.com/alakob/row_id_generator/blob/main/docs/)  
-> **Installation**: `uv add git+https://github.com/alakob/row_id_generator.git`
+> **Installation**: `uv pip install git+https://github.com/alakob/row_id_generator.git`
 
 ## Complete System Architecture
 
