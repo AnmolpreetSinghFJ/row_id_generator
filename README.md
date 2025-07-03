@@ -20,20 +20,9 @@ A Python package for generating unique, stable row IDs for Pandas DataFrames bef
 
 ## 📦 Installation
 
-### Quick Install from PyPI
+### Install from GitHub
 
-```bash
-uv add row-id-generator
-```
-
-### Alternative with pip
-
-```bash
-pip install row-id-generator
-```
-
-### Install from GitHub (Latest Development Version)
-
+**For standalone use or testing:**
 ```bash
 # Using uv (recommended)
 uv pip install git+https://github.com/alakob/row_id_generator.git
@@ -42,49 +31,39 @@ uv pip install git+https://github.com/alakob/row_id_generator.git
 pip install git+https://github.com/alakob/row_id_generator.git
 ```
 
-### Install specific GitHub branch or tag
-
+**To add as a dependency to your project:**
 ```bash
-# Install from specific branch
-uv pip install git+https://github.com/alakob/row_id_generator.git@main
+# Using uv (requires pyproject.toml in your project)
+uv add git+https://github.com/alakob/row_id_generator.git
 
-# Install from specific tag
-uv pip install git+https://github.com/alakob/row_id_generator.git@v1.0.0
+# Using pip with requirements.txt
+echo "git+https://github.com/alakob/row_id_generator.git" >> requirements.txt
+pip install -r requirements.txt
+```
+
+### Local Development Install
+```bash
+# Clone the repository
+git clone https://github.com/alakob/row_id_generator.git
+cd row_id_generator
+
+# Install in development mode
+uv pip install -e .
+# or with pip
+pip install -e .
+```
+
+### Install with Optional Dependencies
+```bash
+# Standalone installation with extras
+uv pip install "git+https://github.com/alakob/row_id_generator.git[all]"
+uv pip install "git+https://github.com/alakob/row_id_generator.git[observability]"
+
+# Add to your project with extras
+uv add "git+https://github.com/alakob/row_id_generator.git[all]"
 
 # Using pip
-pip install git+https://github.com/alakob/row_id_generator.git@main
-```
-
-### Development Installation
-
-```bash
-# Clone and install for development
-git clone https://github.com/alakob/row_id_generator.git
-cd row_id_generator
-uv sync --dev
-```
-
-Or with pip:
-```bash
-git clone https://github.com/alakob/row_id_generator.git
-cd row_id_generator
-pip install -e ".[dev]"
-```
-
-### With Optional Dependencies
-
-```bash
-# Install with Snowflake integration
-uv add "row-id-generator[snowflake]"
-
-# Install with observability features
-uv add "row-id-generator[observability]"
-
-# Install with all optional dependencies
-uv add "row-id-generator[all]"
-
-# From GitHub with extras
-uv pip install "git+https://github.com/alakob/row_id_generator.git[all]"
+pip install "git+https://github.com/alakob/row_id_generator.git[all]"
 ```
 
 ## 🔥 Quick Start
@@ -437,7 +416,7 @@ except RowIDGenerationError as e:
     # Log error and notify monitoring systems
 ```
 
-## 📚 Examples
+## �� Examples
 
 ### Real-World Use Cases
 
@@ -612,18 +591,34 @@ uv run pytest --cov=row_id_generator --cov-report=term-missing
 
 ### Optional Dependencies
 
+**For standalone installation:**
 ```bash
 # For observability features
-uv add "row-id-generator[observability]"
+uv pip install "git+https://github.com/alakob/row_id_generator.git[observability]"
 
 # For development
-uv add "row-id-generator[dev]"
+uv pip install "git+https://github.com/alakob/row_id_generator.git[dev]"
 
 # For performance testing
-uv add "row-id-generator[performance]"
+uv pip install "git+https://github.com/alakob/row_id_generator.git[performance]"
 
 # All optional dependencies
-uv add "row-id-generator[all]"
+uv pip install "git+https://github.com/alakob/row_id_generator.git[all]"
+```
+
+**To add to your project:**
+```bash
+# For observability features
+uv add "git+https://github.com/alakob/row_id_generator.git[observability]"
+
+# For development
+uv add "git+https://github.com/alakob/row_id_generator.git[dev]"
+
+# For performance testing
+uv add "git+https://github.com/alakob/row_id_generator.git[performance]"
+
+# All optional dependencies
+uv add "git+https://github.com/alakob/row_id_generator.git[all]"
 ```
 
 ## 📄 License
