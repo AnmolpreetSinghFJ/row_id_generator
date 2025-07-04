@@ -1,11 +1,8 @@
 """
-Row ID Generator Package
+Row ID Generator: A high-performance library for generating unique, deterministic row IDs.
 
-A Python package for generating unique, stable row IDs for Pandas DataFrames 
-before loading into Snowflake databases.
-
-Now includes comprehensive observability features for monitoring, metrics,
-alerting, and dashboard capabilities, plus a command-line interface.
+This package provides utilities for generating SHA-256 based row identifiers from pandas DataFrame data,
+with support for column selection, data preprocessing, and comprehensive monitoring.
 """
 
 __version__ = "1.0.0"
@@ -14,20 +11,23 @@ __email__ = "support@example.com"
 
 # Import main functionality for easy access
 from .core import (
-    generate_unique_row_ids, 
-    generate_row_ids_simple, 
+    generate_unique_row_ids,
+    generate_row_hash,
+    generate_row_ids_vectorized,
+    generate_row_ids_simple,
     generate_row_ids_fast,
-    create_optimized_row_id_function,
-    validate_dataframe_input,
-    DataValidationError,
-    HashGenerationError,
-    RowIDGenerationError,
-    ColumnSelectionError,
-    PreprocessingError
+    generate_row_ids_with_audit,
+    HashingEngine,
+    HashingObserver,
+    prepare_for_snowflake,
+    load_to_snowflake,
+    create_optimized_row_id_function
 )
 from .utils import (
-    select_columns_for_hashing, 
+    select_columns_for_hashing,
     prepare_data_for_hashing,
+    prepare_data_for_hashing_with_dtype_preservation,
+    restore_original_dtypes,
     normalize_string_data,
     handle_null_values,
     standardize_datetime,
@@ -40,7 +40,6 @@ from .utils import (
 # Import observability-integrated functionality
 from .observable import (
     ObservableHashingEngine,
-    ObservabilityMetrics,
     create_observable_engine,
     create_minimal_observable_engine,
     create_full_observable_engine
@@ -53,12 +52,17 @@ from . import cli
 __all__ = [
     # Core functionality
     'generate_unique_row_ids',
+    'generate_row_hash',
+    'generate_row_ids_vectorized',
     'generate_row_ids_simple',
     'generate_row_ids_fast',
-    'create_optimized_row_id_function',
-    'validate_dataframe_input',
-    'select_columns_for_hashing', 
+    'generate_row_ids_with_audit',
+    'HashingEngine',
+    'HashingObserver',
+    'select_columns_for_hashing',
     'prepare_data_for_hashing',
+    'prepare_data_for_hashing_with_dtype_preservation',
+    'restore_original_dtypes',
     'normalize_string_data',
     'handle_null_values',
     'standardize_datetime',
@@ -67,19 +71,18 @@ __all__ = [
     'analyze_dataframe_quality',
     'DataQualityMetrics',
     
-    # Error classes
-    'DataValidationError',
-    'HashGenerationError',
-    'RowIDGenerationError',
-    'ColumnSelectionError',
-    'PreprocessingError',
-    
     # Observable functionality
     'ObservableHashingEngine',
-    'ObservabilityMetrics',
     'create_observable_engine',
     'create_minimal_observable_engine',
     'create_full_observable_engine',
+    
+    # Snowflake integration
+    'prepare_for_snowflake',
+    'load_to_snowflake',
+    
+    # Performance optimization
+    'create_optimized_row_id_function',
     
     # CLI module
     'cli'

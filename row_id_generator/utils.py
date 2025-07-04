@@ -80,7 +80,7 @@ def select_columns_for_hashing(
 
 def prepare_data_for_hashing(df: pd.DataFrame, columns: List[str]) -> pd.DataFrame:
     """
-    Preprocess DataFrame data to ensure consistent hashing.
+    Preprocess DataFrame data to ensure consistent hashing while preserving original dtypes.
     
     Args:
         df: Input pandas DataFrame
@@ -92,8 +92,7 @@ def prepare_data_for_hashing(df: pd.DataFrame, columns: List[str]) -> pd.DataFra
     Raises:
         ValueError: If specified columns don't exist in DataFrame
     """
-    # TODO: Implement in Task 3 - Data Preprocessing Functions
-    logger.debug("prepare_data_for_hashing called - implementation pending")
+    logger.debug("prepare_data_for_hashing called - enhanced implementation")
     
     # Validate columns exist
     missing_columns = set(columns) - set(df.columns)
@@ -103,13 +102,124 @@ def prepare_data_for_hashing(df: pd.DataFrame, columns: List[str]) -> pd.DataFra
     # Create a copy to avoid modifying original DataFrame
     processed_df = df[columns].copy()
     
-    # Placeholder preprocessing - basic string conversion
+    # Convert data for hashing (this is only for hash generation, not final result)
     for col in columns:
-        processed_df[col] = processed_df[col].astype(str)
-        processed_df[col] = processed_df[col].str.lower()  # Basic normalization
+        original_dtype = processed_df[col].dtype
+        
+        # Handle different data types appropriately for hashing
+        if pd.api.types.is_bool_dtype(original_dtype):
+            # Special handling for boolean: convert to standardized strings
+            processed_df[col] = processed_df[col].map(lambda x: 'true' if x is True else ('false' if x is False else 'null'))
+        else:
+            # Convert to string and normalize
+            processed_df[col] = processed_df[col].astype(str).str.lower()
     
-    logger.debug(f"Preprocessed {len(columns)} columns for hashing")
+    logger.debug(f"Preprocessed {len(columns)} columns for hashing (dtypes converted for hash generation only)")
     return processed_df
+
+
+def prepare_data_for_hashing_with_dtype_preservation(df: pd.DataFrame, columns: List[str]) -> tuple[pd.DataFrame, dict]:
+    """
+    Enhanced preprocessing that returns both processed data and original dtype information.
+    
+    Args:
+        df: Input pandas DataFrame
+        columns: List of columns to prepare for hashing
+        
+    Returns:
+        Tuple of (processed_df_for_hashing, original_dtypes_dict)
+        
+    Raises:
+        ValueError: If specified columns don't exist in DataFrame
+    """
+    logger.debug("prepare_data_for_hashing_with_dtype_preservation called")
+    
+    # Validate columns exist
+    missing_columns = set(columns) - set(df.columns)
+    if missing_columns:
+        raise ValueError(f"Columns not found in DataFrame: {missing_columns}")
+    
+    # Store original dtypes
+    original_dtypes = {}
+    for col in columns:
+        if col in df.columns:
+            original_dtypes[col] = df[col].dtype
+    
+    # Create processed version for hashing
+    processed_df = df[columns].copy()
+    
+    # Convert data for hashing while preserving dtype information
+    for col in columns:
+        original_dtype = original_dtypes[col]
+        
+        # Handle different data types appropriately for hashing
+        if pd.api.types.is_bool_dtype(original_dtype):
+            # Special handling for boolean: convert to standardized strings
+            processed_df[col] = processed_df[col].map(lambda x: 'true' if x is True else ('false' if x is False else 'null'))
+        elif pd.api.types.is_datetime64_any_dtype(original_dtype):
+            # Convert datetime to ISO format string
+            processed_df[col] = processed_df[col].dt.strftime('%Y-%m-%d %H:%M:%S').fillna('null')
+        elif pd.api.types.is_numeric_dtype(original_dtype):
+            # Convert numeric to string with consistent formatting
+            processed_df[col] = processed_df[col].astype(str).str.lower()
+        else:
+            # String and other types: convert to string and normalize
+            processed_df[col] = processed_df[col].astype(str).str.lower()
+    
+    logger.debug(f"Preprocessed {len(columns)} columns for hashing with dtype preservation")
+    return processed_df, original_dtypes
+
+
+def restore_original_dtypes(df: pd.DataFrame, original_dtypes: dict, exclude_columns: List[str] = None) -> pd.DataFrame:
+    """
+    Restore original dtypes to a DataFrame, excluding specified columns.
+    
+    Args:
+        df: DataFrame to restore dtypes for
+        original_dtypes: Dictionary mapping column names to original dtypes
+        exclude_columns: List of columns to exclude from dtype restoration (e.g., new ID columns)
+        
+    Returns:
+        DataFrame with restored original dtypes
+    """
+    if exclude_columns is None:
+        exclude_columns = []
+    
+    restored_df = df.copy()
+    
+    for col, original_dtype in original_dtypes.items():
+        if col in restored_df.columns and col not in exclude_columns:
+            try:
+                if pd.api.types.is_bool_dtype(original_dtype):
+                    # Special handling for boolean restoration
+                    restored_df[col] = restored_df[col].map(
+                        lambda x: True if str(x).lower() == 'true' 
+                        else (False if str(x).lower() == 'false' 
+                        else pd.NA if str(x).lower() in ['null', 'nan', 'none'] 
+                        else bool(x))
+                    ).astype(original_dtype)
+                elif pd.api.types.is_datetime64_any_dtype(original_dtype):
+                    # Restore datetime
+                    restored_df[col] = pd.to_datetime(restored_df[col], errors='coerce').astype(original_dtype)
+                elif pd.api.types.is_integer_dtype(original_dtype):
+                    # Restore integer
+                    restored_df[col] = pd.to_numeric(restored_df[col], errors='coerce').astype(original_dtype)
+                elif pd.api.types.is_float_dtype(original_dtype):
+                    # Restore float
+                    restored_df[col] = pd.to_numeric(restored_df[col], errors='coerce').astype(original_dtype)
+                elif original_dtype.name == 'category':
+                    # Restore categorical
+                    restored_df[col] = restored_df[col].astype('category')
+                else:
+                    # For other types, try direct conversion
+                    restored_df[col] = restored_df[col].astype(original_dtype)
+                    
+            except Exception as e:
+                logger.warning(f"Failed to restore dtype for column {col}: {e}")
+                # Keep the current dtype if restoration fails
+                continue
+    
+    return restored_df
 
 
 def normalize_string_data(series: pd.Series, 

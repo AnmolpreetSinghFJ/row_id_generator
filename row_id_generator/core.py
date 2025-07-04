@@ -4455,7 +4455,7 @@ def generate_unique_row_ids(
         )
         
         # Create result DataFrame with row IDs
-        result_df = preprocessed_df.copy()
+        result_df = df.copy()
         result_df[id_column_name] = row_ids        
         if lineage_tracker:
             # Track hash generation transformation
@@ -4477,8 +4477,14 @@ def generate_unique_row_ids(
             )
             # Add performance metrics from observer
             if observer:
-                observer_metrics = observer.export_metrics()
-                if observer_metrics.get('average_rows_per_second'):
+                observer_metrics = observer.export_metrics() if observer else {}
+                # Handle both dict and string returns from export_metrics
+                if isinstance(observer_metrics, str):
+                    try:
+                        observer_metrics = json.loads(observer_metrics)
+                    except:
+                        observer_metrics = {}
+                if isinstance(observer_metrics, dict) and observer_metrics.get('average_rows_per_second'):
                     lineage_tracker.add_performance_metric(
                         metric_name="processing_rate",
                         value=observer_metrics['average_rows_per_second'],
@@ -4586,7 +4592,7 @@ def generate_unique_row_ids(
                 'session_id': session_id,
                 'processing_summary': processing_summary,
                 'lineage_tracker': lineage_tracker if enable_enhanced_lineage else None,
-                'observer_metrics': observer.export_metrics() if observer else None
+                'observer_metrics': json.loads(observer.export_metrics()) if observer and isinstance(observer.export_metrics(), str) else observer.export_metrics() if observer else None
             }
         
         return result_df
@@ -5129,17 +5135,25 @@ def create_enhanced_audit_trail(
     
     # Add observer metrics if available
     if observer_metrics:
-        audit_trail['observability_metrics'] = observer_metrics
+        # Handle both dict and string returns from export_metrics
+        if isinstance(observer_metrics, str):
+            try:
+                observer_metrics = json.loads(observer_metrics)
+            except:
+                observer_metrics = {}
         
-        # Add observer summary
-        audit_trail['observability_summary'] = {
-            'total_operations': observer_metrics.get('total_operations', 0),
-            'total_rows_processed': observer_metrics.get('total_rows_processed', 0),
-            'average_processing_rate': observer_metrics.get('average_rows_per_second', 0),
-            'peak_memory_mb': observer_metrics.get('peak_memory_mb', 0),
-            'error_count': observer_metrics.get('error_count', 0),
-            'collision_count': observer_metrics.get('collision_count', 0)
-        }
+        if isinstance(observer_metrics, dict):
+            audit_trail['observability_metrics'] = observer_metrics
+            
+            # Add observer summary
+            audit_trail['observability_summary'] = {
+                'total_operations': observer_metrics.get('total_operations', 0),
+                'total_rows_processed': observer_metrics.get('total_rows_processed', 0),
+                'average_processing_rate': observer_metrics.get('average_rows_per_second', 0),
+                'peak_memory_mb': observer_metrics.get('peak_memory_mb', 0),
+                'error_count': observer_metrics.get('error_count', 0),
+                'collision_count': observer_metrics.get('collision_count', 0)
+            }
     
     # Generate processing insights
     audit_trail['processing_insights'] = _generate_processing_insights(
@@ -5246,7 +5260,7 @@ def integrate_enhanced_audit_trail(
     # Get observer metrics if available
     observer_metrics = None
     if observer:
-        observer_metrics = observer.export_metrics()
+        observer_metrics = observer.export_metrics() if observer else {}
     
     # Create enhanced audit trail
     audit_trail = create_enhanced_audit_trail(
