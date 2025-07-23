@@ -35,7 +35,7 @@ import pickle
 import cProfile
 import pstats
 import io
-import resource
+# import resource
 import linecache
 import tracemalloc
 import numpy as np
