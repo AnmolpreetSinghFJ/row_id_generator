@@ -40,6 +40,9 @@ import linecache
 import tracemalloc
 import numpy as np
 
+from typing import Final
+import hmac
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -2134,6 +2137,98 @@ def generate_row_ids_vectorized(processed_df: pd.DataFrame, separator: str = '|'
     return _hashing_engine.generate_row_ids_vectorized(
         processed_df, separator, batch_size, show_progress, parallel, chunk_size
     )
+
+
+_ALPHABET: Final[str] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+_BASE: Final[int] = len(_ALPHABET)
+
+def _to_base62(number: int) -> str:
+    """Convert a non-negative integer to Base62 string using _ALPHABET."""
+    if number < 0:
+        raise ValueError("number must be non-negative")
+    if number == 0:
+        return _ALPHABET[0]
+
+    chars = []
+    while number:
+        number, remainder = divmod(number, _BASE)
+        chars.append(_ALPHABET[remainder])
+    return "".join(reversed(chars))
+
+
+def shorten_sha256_to_salesforce_20(src_id_hex: str) -> str:
+    """Deterministically map a 64‑hex SHA‑256 ID to a 20‑char Salesforce‑safe ID.
+ 
+    Unkeyed variant (recommended when the 64‑hex IDs are generated internally
+    and are not attacker‑controlled):
+      1) Parse the 64‑hex string into bytes (the raw 32‑byte digest)
+      2) Keep the first 119 bits (take first 15 bytes then shift right by 1)
+      3) Base62‑encode and left‑pad to fixed length 20
+ 
+    Args:
+        src_id_hex: 64‑character hex string (original SHA‑256 ID, hex‑encoded).
+ 
+    Returns:
+        A fixed‑length 20‑character Base62 string (Salesforce Text(20)‑friendly).
+ 
+    Raises:
+        ValueError: if src_id_hex is not a valid 64‑char hex string.
+    """   
+    s = src_id_hex.strip()
+    if len(s) != 64:
+        raise ValueError("src_id_hex must be a 64-character hex string")
+    try:
+        digest = bytes.fromhex(s)
+    except ValueError as exc:
+        raise ValueError("src_id_hex must be valid hexadecimal") from exc
+ 
+    # 15 bytes = 120 bits; shift right by 1 to get 119 bits (fits 20 Base62 chars)
+    n119 = int.from_bytes(digest[:15], "big") >> 1
+ 
+    encoded = _to_base62(n119)
+    # Left-pad to fixed length 20 using the first alphabet character ('0')
+    return encoded.rjust(20, _ALPHABET[0])
+ 
+ 
+def shorten_sha256_to_salesforce_20_keyed(src_id_hex: str, secret_key: bytes) -> str:
+    """Deterministically map a 64-hex SHA-256 ID to a 20-character Salesforce-safe ID.
+ 
+    Keyed hardening variant (optional) for when inputs may be attacker‑controlled:
+      1) HMAC-SHA256(src_id_hex, secret_key) → 256-bit digest
+      2) Keep first 119 bits (take first 15 bytes then shift right by 1)
+      3) Base62-encode and left-pad to fixed length 20
+ 
+    Args:
+        src_id_hex: 64-character hex string (original SHA-256 ID, hex-encoded).
+        secret_key: Secret key for HMAC. Keep stable and secure.
+ 
+    Returns:
+        A fixed-length 20-character Base62 string (Salesforce Text(20)-friendly).
+ 
+    Raises:
+        ValueError: if src_id_hex is not a valid 64-char hex string or key is empty.
+    """
+    s = src_id_hex.strip()
+    if len(s) != 64:
+        raise ValueError("src_id_hex must be a 64-character hex string")
+    # Validate hex input
+    try:
+        int(s, 16)
+    except ValueError as exc:
+        raise ValueError("src_id_hex must be valid hexadecimal") from exc
+ 
+    if not secret_key:
+        raise ValueError("secret_key must be non-empty")
+ 
+    # HMAC for uniform, keyed, deterministic hashing
+    digest = hmac.new(secret_key, s.encode("utf-8"), hashlib.sha256).digest()
+ 
+    # 15 bytes = 120 bits; shift right by 1 to get 119 bits (fits 20 Base62 chars)
+    n119 = int.from_bytes(digest[:15], "big") >> 1
+ 
+    encoded = _to_base62(n119)
+    # Left-pad to fixed length 20 using the first alphabet character ('0')
+    return encoded.rjust(20, _ALPHABET[0])
 
 
 def prepare_for_snowflake(df_with_ids: pd.DataFrame, table_name: str) -> pd.DataFrame:
